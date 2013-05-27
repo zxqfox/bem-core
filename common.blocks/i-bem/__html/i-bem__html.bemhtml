@@ -252,6 +252,8 @@ BEMContext.prototype.generateId = function generateId() {
     return this.identify(this.ctx);
 };
 
+BEMContext.prototype.cache = exports.cache;
+
 // Wrap xjst's apply and export our own
 var oldApply = exports.apply;
 exports.apply = BEMContext.apply = function _apply(context) {
@@ -271,6 +273,7 @@ match(this._mode === '')(
         this.ctx || (this.ctx = {});
 
         local('default', {
+            _links: this.ctx.links || this._links,
             block: vBlock || (vElem ? block : undefined),
             _currBlock: vBlock || vElem ? undefined : block,
             elem: this.ctx.elem,
@@ -457,6 +460,139 @@ def()(function() {
 
         tag && buf.push('</', tag, '>');
     }
+});
+
+// Cache start
+match(this.cache, this.ctx, function() { return this.ctx.cache })(function() {
+    var cache = this.cache,
+        cached;
+
+    // setProperty(obj, ['nested', 'key'], 'value')
+    // setProperty(obj, ['nested', 'key'], ['nested', 'source'], 1)
+    function setProperty(obj, key, path, value) {
+        if (key.length === 0) return;
+        if (!value) {
+          value = path;
+          path = null;
+        }
+
+        if (Array.isArray(path)) {
+            var target = obj;
+            for (var i = 0; i < path.length - 1; i++) {
+                target = target[path[i]];
+            }
+            value = target[path[i]];
+        }
+
+        var host = obj,
+            previous;
+
+        for (var i = 0; i < key.length - 1; i++) {
+            host = host[key[i]];
+        }
+
+        previous = host[key[i]];
+        host[key[i]] = value;
+
+        return previous;
+    }
+
+    if (cached = cache.get(this.ctx.cache)) {
+        // get new links from context
+        var oldLinks = this._links;
+        if (this.ctx.links) this._links = this.ctx.links;
+
+        // Cache hit
+        for (var i = 0; i < cached.log.length; i++) {
+            if (typeof cached.log[i] === 'string') {
+                this._buf.push(cached.log[i]);
+                continue;
+            }
+
+            // Apply log and create reverse movement
+            var log = cached.log[i],
+                reverseLog;
+
+            reverseLog = log.log.map(function(entry) {
+                return {
+                    key: entry[0],
+                    value: setProperty(this, entry[0], entry[1], entry[2])
+                };
+            }, this).reverse();
+
+            // Generate content
+            apply({ 'ctx.cache': null, _cacheLog: null, 'ctx.link': log.link });
+
+            // Revert changes
+            reverseLog.forEach(function(entry) {
+                setProperty(this, entry.key, entry.value)
+            }, this);
+        }
+
+        // restore links
+        this._links = oldLinks;
+
+        return cached.res;
+    }
+
+    // Record log
+    var cacheLog = [],
+        res;
+
+    local({
+        'ctx.cache': null,
+        _cachePos: this._buf.length,
+        _cacheLog: cacheLog,
+        __$history: []
+    })(function() {
+        res = apply();
+
+        var tail = this._buf.slice(this._cachePos).join('');
+        if (tail) cacheLog.push(tail);
+    });
+
+    // And set cache
+    cache.set(this.ctx.cache, { log: cacheLog, res: res });
+
+    return res;
+});
+
+// Data redirection
+match(!this._.isSimple(this.ctx),
+      this.ctx,
+      function() { return this.ctx.link })(function() {
+    function follow() {
+        if (this.ctx.link === 'no-follow') return;
+
+        var data = this._links[this.ctx.link];
+        return apply({ ctx: data });
+    }
+
+    if (!this.cache || !this._cacheLog) return follow.call(this);
+
+    // Get contents that should be cached
+    var contents = this._buf.slice(this._cachePos).join('');
+
+    // Move buffer position forward
+    this._cachePos = this._buf.length;
+
+    this._cacheLog.push(
+        // static cache entry
+        contents,
+
+        // dynamic entry
+        {
+            log: this.__$history.slice(),
+            link: this.ctx.link
+        }
+    );
+
+    var res = follow.call(this);
+
+    // Skip non-cacheable contents
+    this._cachePos = this._buf.length;
+
+    return res;
 });
 
 tag()(undefined);

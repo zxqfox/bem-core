@@ -1,4 +1,5 @@
 var bem_xjst = require('bem-xjst'),
+    bemhtml = require('../bemhtml'),
     vm = require('vm');
 
 var api = exports;
@@ -13,21 +14,19 @@ api.translate = function translate(source, options) {
   options || (options = {});
 
   var xjstJS = bem_xjst.generate(source, {
+        cache: options.cache,
         optimize: !options.devMode
       }),
       exportName = options.exportName || 'BEMHTML';
 
   return [
-         '(function(g) {\n',
-         '  var __xjst = (function(exports) {\n',
+         '(function(g) {',
+         '  var e = typeof exports === "object" ? exports : g;',
+         '  var __xjst = (function(exports) {',
          '     ' + xjstJS + ';',
          '     return exports;',
-         '  })({});',
-         '  if(typeof exports === "object") {',
-         '    exports["' + exportName + '"] = __xjst;',
-         '  } else {',
-         '    g["' + exportName + '"] = __xjst;',
-         '  }',
+         '  })({ cache: e.cache });',
+         '  e["' + exportName + '"] = __xjst;',
          '})(this);'
          ].join('\n');
 };
@@ -40,7 +39,13 @@ api.translate = function translate(source, options) {
 //
 api.compile = function compile(source, options) {
   var body = exports.translate(source, options),
-      context = { exports: {} };
+      context = {
+        exports: {
+          cache: options.cache &&
+                 (options.cache === true ? bemhtml.cache.create() :
+                                           options.cache)
+        }
+      };
 
   if (options && options.devMode) context.console = console;
   vm.runInNewContext(body, context);

@@ -1,0 +1,3 @@
+block('just-random-block').content()(function() {
+  return applyCtx({ link: 'are' });
+})
