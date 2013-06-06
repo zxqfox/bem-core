@@ -29,7 +29,7 @@ suite('i-bem block and cache', function() {
         test(
           'when cache is ' + cache,
           function() {
-            var result = BEMHTML.apply.call(contents.data) + '\n';
+            var result = BEMHTML.call(contents.data) + '\n';
             assert.equal(result, contents.dst);
           }
         );
