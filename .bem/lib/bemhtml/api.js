@@ -26,7 +26,8 @@ api.translate = function translate(source, options) {
          '     ' + xjstJS + ';',
          '     return exports;',
          '  })({ cache: e.cache });',
-         '  e["' + exportName + '"] = __xjst;',
+         '  __xjst.apply.apply = __xjst.apply;',
+         '  e["' + exportName + '"] = __xjst.apply;',
          '})(this);'
          ].join('\n');
 };
