@@ -26,7 +26,11 @@ exports.getTechs = function() {
         'vanilla.js',
         'browser.js',
         'node.js',
-        'browser.js+bemhtml'
+        'browser.js+bemhtml',
+        'i18n',
+        'i18n.vanilla.js',
+        'i18n.browser.js',
+        'i18n.browser.js+bemhtml'
     ].forEach(function(name) {
         techs[name] = join(PRJ_TECHS, name + '.js');
     });
