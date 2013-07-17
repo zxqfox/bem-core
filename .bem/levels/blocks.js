@@ -21,6 +21,7 @@ exports.getTechs = function() {
         'bemhtml',
         'bemtree',
         'html',
+        'i18n',
         'examples',
         'tests',
         'vanilla.js',
