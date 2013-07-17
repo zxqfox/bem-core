@@ -1,6 +1,8 @@
 var BEM = require('bem'),
     Q = BEM.require('q');
 
+var dbg = 0;
+
 exports.baseTechName = 'browser.js';
 
 exports.techMixin = {
@@ -10,7 +12,10 @@ exports.techMixin = {
 
         return this.__base(decl, levels, output, opts)
             .then(function(res) {
-
+dbg && console.log("================================================================")
+dbg && console.log("================================================================")
+dbg && console.log("getBuildResults: function(decl, levels, output, opts) {================")
+dbg && console.log("res",res)
                 return _this.concatBemhtml(res, output, opts)
                     .then(function() {
                         return res;
@@ -47,7 +52,11 @@ exports.techMixin = {
 
                 return bemhtmlResults
                     .then(function(r) {
-
+dbg && console.log("================================================================")                        
+dbg && console.log("bemhtml ready================================================================")
+dbg && console.log("bemhtml",r)
+dbg && console.log("res================================================================")
+dbg && console.log(res)                        
                         // put bemhtml templates at the top of builded js file
                         Object.keys(res).forEach(function(suffix) {
                             // test for array as in i18n.js+bemhtml tech
@@ -55,6 +64,10 @@ exports.techMixin = {
                             // so 'js' key is a string there
                             Array.isArray(res[suffix]) && res[suffix].unshift(r['bemhtml.js']);
                         });
+dbg && console.log("================================================================")                        
+dbg && console.log("bemhtml final================================================================")
+dbg && console.log("res================================================================")
+dbg && console.log(res)                        
 
                     });
 

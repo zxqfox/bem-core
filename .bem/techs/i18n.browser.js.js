@@ -2,14 +2,27 @@ var BEM = require('bem'),
     Q = BEM.require('q'),
     LangsMixin = require('./i18n').LangsMixin,
     PATH = require('path'),
-    I18NJS = require('../../../__i18n/lib/i18n-js');
+    I18NJS = require('../lib/i18n/i18n-js'),
+    TECH = BEM.TechV2
 
-exports.baseTechName = 'js';
+
+
+var dbg = 1
+
+exports.baseTechName = 'browser.js';
 
 exports.techMixin = BEM.util.extend({}, LangsMixin, {
 
     getBaseTechSuffix: function() {
-        return 'js';
+        return 'browser.js';
+    },
+
+    getSuffixes: function() {
+        return TECH.prototype.getSuffixes.apply(this,arguments)
+    },
+
+    getBuildSuffixes:function() {
+        return Object.keys(this.getBuildSuffixesMap())  
     },
 
     getBuildSuffixesMap: function() {
@@ -30,11 +43,17 @@ exports.techMixin = BEM.util.extend({}, LangsMixin, {
     },
 
     getBuildResults: function(decl, levels, output, opts) {
+        
+        dbg && console.log("getBuildResults: function(decl, __levels, output, __opts)  ================================================================")
+        dbg && console.log(decl, "_", output, "_")
 
+        dbg && console.log("================this.getSourceSuffix()",this.getSourceSuffix())
         var _this = this,
+        
             source = this.getPath(output, this.getSourceSuffix()),
             base = this.__base;
-
+        dbg && console.log("source = this.getPath(output, this.getSourceSuffix()),")
+        dbg && console.log("================", this.getPath(output, this.getSourceSuffix()))
         return BEM.util.readJsonJs(source)
             .then(function(data) {
                 if (!opts) opts = {};
@@ -47,7 +66,8 @@ exports.techMixin = BEM.util.extend({}, LangsMixin, {
     },
 
     getBuildResult: function(files, suffix, output, opts) {
-
+        dbg && console.log("getBuildResult: function(files, suffix, output, opts) {================================================================")
+        dbg && console.log(files,suffix,output,"_")
         if (suffix === this.getBaseTechSuffix()) return Q.resolve(output);
 
         var _this = this;
