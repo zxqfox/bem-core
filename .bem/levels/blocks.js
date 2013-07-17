@@ -23,6 +23,7 @@ exports.getTechs = function() {
         'html',
         'i18n',
         'i18n.browser.js',
+        'i18n.node.js',
         'i18n.browser.js+bemhtml',
         'examples',
         'tests',

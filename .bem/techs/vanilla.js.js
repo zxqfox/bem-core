@@ -24,6 +24,9 @@ exports.techMixin = {
     },
 
     getCreateResult : function(path, suffix, vars) {
+console.log("================================================================")        
+console.log("getCreateResult : function(path, suffix, vars) {")        
+console.log(path, suffix, vars)        
         var moduleName = vars.BlockName;
         vars.ElemName &&
             (moduleName += '__' + vars.ElemName);

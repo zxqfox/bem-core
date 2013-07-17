@@ -9,12 +9,12 @@ var BEM = require('bem'),
 
 var dbg = 1
 
-exports.baseTechName = 'browser.js';
+exports.baseTechName = 'node.js';
 
 exports.techMixin = BEM.util.extend({}, LangsMixin, {
 
     getBaseTechSuffix: function() {
-        return 'js';
+        return 'node.js';
     },
 
     getSuffixes: function() {
@@ -32,7 +32,7 @@ exports.techMixin = BEM.util.extend({}, LangsMixin, {
         this.getLangs()
             .map(this.getBuildSuffixForLang, this).concat([this.getBaseTechSuffix()])
             .forEach(function(s) {
-                suffixes[s] = [this.getBaseTechSuffix(),'browser.js','vanilla.js'];
+                suffixes[s] = [this.getBaseTechSuffix(),'vanilla.js'];
             }, this);
 
         return suffixes;
