@@ -34,7 +34,7 @@ module.exports = {
     },
     'bem-pr' : {
         type     : 'git',
-        url      : 'git://github.com/narqo/bem-pr.git'
+        url      : 'git://github.com/tadatuta/bem-pr.git'
     },
     'bem-yana' : {
         type     : 'git',

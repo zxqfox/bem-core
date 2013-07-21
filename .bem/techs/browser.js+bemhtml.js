@@ -5,6 +5,13 @@ exports.baseTechName = 'browser.js';
 
 exports.techMixin = {
 
+    getBuildSuffixesMap:function() {
+        var buildSuffixesMap = this.__base();
+        buildSuffixesMap.js.push('bemhtml');
+
+        return buildSuffixesMap;
+    },
+
     getBuildResults: function(decl, levels, output, opts) {
         var _this = this;
 

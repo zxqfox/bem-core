@@ -1,9 +1,11 @@
-/*global MAKE: true */
+/* jshint node:true */
+/* global MAKE */
 
+require('bem-environ/lib/nodes');
 require('./nodes');
 
 var PATH = require('path'),
-    environ = require('./environ');
+    environ = require('bem-environ');
 
 try {
     var setsNodes = require(environ.getLibPath('bem-pr', 'bem/nodes/sets'));
@@ -21,7 +23,7 @@ MAKE.decl('Arch', {
 
     bundlesLevelsRegexp: /^.+?\.bundles$/,
 
-    libraries : [ 'bem-pr' ],
+    libraries : [ 'bem-pr @ v0.2' ],
 
     createCustomNodes: function(common, libs, blocks) {
         if(!setsNodes) return;

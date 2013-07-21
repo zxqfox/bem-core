@@ -1,11 +1,9 @@
 var BEM = require('bem'),
     Q = BEM.require('q'),
     PATH = require('path'),
-    compat = require('bemhtml-compat'),
+    compat = require('bemhtml-compat');
 
-    Tech = require('bem/lib/tech').TechV2;
-
-exports.baseTech = Tech;
+exports.API_VER = 2;
 
 exports.techMixin = {
 
