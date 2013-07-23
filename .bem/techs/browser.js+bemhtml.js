@@ -1,83 +1,89 @@
 var BEM = require('bem'),
-    Q = BEM.require('q');
+Q = BEM.require('q'),
+Tech = require('bem/lib/tech').TechV2,
+Deps = require('bem/lib/techs/v2/deps.js').Deps
 
-var dbg = 0;
+var dbg = 1;
 
-exports.baseTechName = 'browser.js';
+exports.baseTech = Tech;
 
 exports.techMixin = {
 
-    getBuildSuffixesMap:function(){
-        var m = this.__base();
-        m.js.push("bemhtml");
-        return m;
-    },
-
     getBuildResults: function(decl, levels, output, opts) {
-        var _this = this;
+        var _this = this,
+        res = {},
+        files = this.getBuildPaths(decl,levels);
+        var BM = _this.getBuildSuffixesMap();
 
-        return this.__base(decl, levels, output, opts)
-            .then(function(res) {
-dbg && console.log("================================================================")
-dbg && console.log("================================================================")
-dbg && console.log("getBuildResults: function(decl, levels, output, opts) {================")
-dbg && console.log("res",res)
-                return _this.concatBemhtml(res, output, opts)
-                    .then(function() {
-                        return res;
+        return files.then(function(files){
+            return Q.all(Object.keys(BM).map(
+                function(destSuffix){
+                    var filteredFiles = []
+                    BM[destSuffix].some(function(srcSuffix){
+                        files[srcSuffix] && files[srcSuffix].some(function(f){
+                            filteredFiles.push(f)
+                        })
+                    })
+                    var file = _this.getPath(output, destSuffix);
+
+                    return _this.validate(file, filteredFiles, opts)}))
+                .then(function(filesvalid){
+                    if(filesvalid.every(function(v){return v})){
+                        console.log("files valid!!!!")
+                        return {}
+                    } else {
+                        console.log("files not valid!!!!")
+                        var bemhtmlTech = _this.context.getTech("bemhtml")
+                        var browserTech = _this.context.getTech("browser.js")
+
+                        opts = {__proto__:opts,force:true};
+
+                        return Q.all([bemhtmlTech.getBuildResults(decl,levels,output,opts),
+                                browserTech.getBuildResults(decl,levels,output,opts)])
+                            .spread(function(bemhtml,browser){
+                                //                .spread(function(browser){
+                                if(browser.js){
+                                    if(bemhtml["bemhtml.js"]){
+                                        browser.js.unshift(bemhtml["bemhtml.js"]+"\n");
+                                    }
+                                    return browser;
+                                } else {
+                                    if(bemhtml["bemhtml.js"]){
+                                        return {js: bemhtml["bemhtml.js"]};
+                                    } else{
+                                        return {};
+                                    }
+                                }
+                            })
+                    }
+                })
+        })
+    },
+
+    transformBuildDecl: function(decl) {
+        var ss = this.getSuffixesMap();
+        var bb = this.getBuildSuffixesMap();
+        return decl
+            .then(function(decl){
+                var deps = new Deps().parseDepsDecl(decl)
+                    .filter2(function(dependson, dependent) {
+                        if(dependson.item.tech &&
+                           dependent.item.tech){
+                            console.log("dest",dependent.item,"source",dependson.item)
+                        }
+                        return ((dependson.item.tech in ss)
+                          && dependent.item.tech in bb)
+                    }).map(function(item){
+                        return item.item;
                     });
-
+                return {deps: deps};
             });
     },
 
-    concatBemhtml: function(res, output, opts) {
-        var _this = this,
-            context = this.context,
-            declaration = context.opts.declaration;
-
-        return declaration
-            .then(function(decl) {
-
-                decl = decl.depsByTechs;
-
-                if (!decl || !decl.js || !decl.js.bemhtml) return;
-
-                decl = { deps: decl.js.bemhtml };
-
-                var bemhtmlTech = context.createTech('bemhtml');
-
-                if (bemhtmlTech.API_VER !== 2) return Q.reject(new Error(_this.getTechName() +
-                    ' can’t use v1 bemhtml tech to concat bemhtml content. Configure level to use v2 bemhtml.'));
-
-                var bemhtmlResults = bemhtmlTech.getBuildResults(
-                        decl,
-                        context.getLevels(),
-                        output,
-                        opts
-                    );
-
-                return bemhtmlResults
-                    .then(function(r) {
-dbg && console.log("================================================================")                        
-dbg && console.log("bemhtml ready================================================================")
-dbg && console.log("bemhtml",r)
-dbg && console.log("res================================================================")
-dbg && console.log(res)                        
-                        // put bemhtml templates at the top of builded js file
-                        Object.keys(res).forEach(function(suffix) {
-                            // test for array as in i18n.js+bemhtml tech
-                            // there's hack to create symlink for default lang
-                            // so 'js' key is a string there
-                            Array.isArray(res[suffix]) && res[suffix].unshift(r['bemhtml.js']);
-                        });
-dbg && console.log("================================================================")                        
-dbg && console.log("bemhtml final================================================================")
-dbg && console.log("res================================================================")
-dbg && console.log(res)                        
-
-                    });
-
-            });
+    getBuildSuffixesMap:function(){
+        return {
+            "js":["browser.js","js","bemhtml.js","vanilla.js"]
+        }
     }
 
 };
