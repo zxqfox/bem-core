@@ -1,28 +1,42 @@
 var PATH = require('path'),
     BEM = require('bem'),
     Q = BEM.require('q'),
+    //Tech = require('bem/lib/tech').TechV2,
     ymPath = require.resolve('ym');
+var Deps = require('bem/lib/techs/v2/deps.js').Deps
 
 exports.baseTechName = 'vanilla.js';
 
 exports.techMixin = {
 
-    getSuffixes : function() {
-        return ['vanilla.js', 'browser.js', 'js'];
+    transformBuildDecl: function(decl) {
+        var bb = this.getWeakBuildSuffixesMap();
+        var ss = this.getWeakSuffixesMap();
+
+        return decl
+            .then(function(decl){
+                var deps = new Deps().parseDepsDecl(decl)
+                    .filter(function(dependson, dependent) {
+                        return (((dependson.item.tech in ss) && dependent.item.tech in bb)
+                          || (!dependson.item.tech && !dependent.item.tech))
+                    }).map(function(item){
+                        return item.item;
+                    });
+                return {deps: deps};
+            });
     },
+
+    getWeakBuildSuffixesMap:function(){
+        return {"js":['vanilla.js', 'browser.js', 'js']};
+    },
+
+    getBuildSuffixesMap:function(){
+        return {"js":["browser.js","js"]};
+    },
+    
 
     getCreateSuffixes : function() {
         return ['browser.js'];
-    },
-
-    getBuildSuffixes : function() {
-        return ['js'];
-    },
-
-    getBuildSuffixesMap : function() {
-        return {
-            'js' : this.getSuffixes()
-        };
     },
 
     getYmChunk : function(outputDir, outputName, suffix) {
