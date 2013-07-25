@@ -17,8 +17,8 @@ exports.techMixin = {
             .then(function(decl){
                 var deps = new Deps().parseDepsDecl(decl)
                     .filter(function(dependson, dependent) {
-                        return (((dependson.item.tech in ss) && dependent.item.tech in bb)
-                          || (!dependson.item.tech && !dependent.item.tech))
+                        return ((dependson.item.tech in ss)
+                          || (!dependson.item.tech))
                     }).map(function(item){
                         return item.item;
                     });

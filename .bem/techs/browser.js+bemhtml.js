@@ -38,7 +38,6 @@ exports.techMixin = {
     },
 
     getBuildResult:function(files, suffix, output, opts){
-        __assert(suffix === "js")
 
         var bemhtmlTech = this.context.createTech("bemhtml");
         var browserTech = this.context.createTech("browser.js");

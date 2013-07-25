@@ -7,26 +7,13 @@ exports.baseTechName = 'js';
 
 exports.techMixin = {
 
-    getSuffixes : function() {
-        return ['vanilla.js'];
-    },
-
-    getBuildSuffixes : function() {
-        return ['vanilla.js'];
-    },
-
     getBuildSuffixesMap : function() {
-        return this.getSuffixes()
-            .reduce(function(map, suffix) {
-                map[suffix] = [suffix];
-                return map;
-            }, {});
+        return {
+            "js":["vanilla.js"]
+        }
     },
 
     getCreateResult : function(path, suffix, vars) {
-console.log("================================================================")        
-console.log("getCreateResult : function(path, suffix, vars) {")        
-console.log(path, suffix, vars)        
         var moduleName = vars.BlockName;
         vars.ElemName &&
             (moduleName += '__' + vars.ElemName);

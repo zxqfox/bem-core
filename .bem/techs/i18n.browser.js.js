@@ -17,16 +17,7 @@ exports.techMixin = BEM.util.extend({}, LangsMixin, {
         return 'js';
     },
 
-    getSuffixes: function() {
-        return TECH.prototype.getSuffixes.apply(this,arguments)
-    },
-
-    getBuildSuffixes:function() {
-        return Object.keys(this.getBuildSuffixesMap())  
-    },
-
-    getBuildSuffixesMap: function() {
-
+    getWeakBuildSuffixesMap: function() {
         var suffixes = {};
 
         this.getLangs()
@@ -38,22 +29,27 @@ exports.techMixin = BEM.util.extend({}, LangsMixin, {
         return suffixes;
     },
 
+    getBuildSuffixesMap: function() {
+        var suffixes = {};
+
+        this.getLangs()
+            .map(this.getBuildSuffixForLang, this).concat([this.getBaseTechSuffix()])
+            .forEach(function(s) {
+                suffixes[s] = [this.getBaseTechSuffix(),'browser.js'];
+            }, this);
+
+        return suffixes;
+    },
+
     getBuildSuffixForLang: function(lang) {
         return lang + '.' + this.getBaseTechSuffix();
     },
 
     getBuildResults: function(decl, levels, output, opts) {
         
-        dbg && console.log("getBuildResults: function(decl, __levels, output, __opts)  ================================================================")
-        dbg && console.log(decl, "_", output, "_")
-
-        dbg && console.log("================this.getSourceSuffix()",this.getSourceSuffix())
         var _this = this,
-        
             source = this.getPath(output, this.getSourceSuffix()),
             base = this.__base;
-        dbg && console.log("source = this.getPath(output, this.getSourceSuffix()),")
-        dbg && console.log("================", this.getPath(output, this.getSourceSuffix()))
         return BEM.util.readJsonJs(source)
             .then(function(data) {
                 if (!opts) opts = {};
@@ -66,8 +62,6 @@ exports.techMixin = BEM.util.extend({}, LangsMixin, {
     },
 
     getBuildResult: function(files, suffix, output, opts) {
-        dbg && console.log("getBuildResult: function(files, suffix, output, opts) {================================================================")
-        dbg && console.log(files,suffix,output,"_")
         if (suffix === this.getBaseTechSuffix()) return Q.resolve(output);
 
         var _this = this;
