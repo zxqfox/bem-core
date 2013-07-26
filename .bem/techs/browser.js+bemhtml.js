@@ -9,11 +9,11 @@ exports.techMixin = {
     API_VER:2,
 
     getWeakBuildSuffixesMap:function(){
-        return {"js":["browser.js","vanilla.js","js","bemhtml"]};
+        return { 'js' : ['browser.js', 'vanilla.js', 'js', 'bemhtml'] };
     },
 
     getBuildSuffixesMap:function(){
-        return {"js":["browser.js","js"]};
+        return { 'js' : ['browser.js', 'js'] };
     },
 
     transformBuildDecl: function(decl) {

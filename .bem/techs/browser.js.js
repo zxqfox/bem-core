@@ -26,11 +26,11 @@ exports.techMixin = {
     },
 
     getWeakBuildSuffixesMap:function(){
-        return {"js":['vanilla.js', 'browser.js', 'js']};
+        return { 'js' : ['vanilla.js', 'browser.js', 'js'] };
     },
 
     getBuildSuffixesMap:function(){
-        return {"js":["browser.js","js"]};
+        return { 'js' : ['browser.js', 'js'] };
     },
     
 

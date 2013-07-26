@@ -3,11 +3,11 @@ exports.baseTechName = 'vanilla.js';
 exports.techMixin = {
 
     getWeakBuildSuffixesMap: function(){
-        return {'node.js':['vanilla.js', 'node.js']};
+        return { 'node.js' : ['vanilla.js', 'node.js'] };
     },
 
     getBuildSuffixesMap: function(){
-        return {'node.js':['node.js']};
+        return { 'node.js' : ['node.js'] };
     },
 
     getCreateSuffixes : function() {
