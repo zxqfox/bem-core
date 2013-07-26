@@ -1,16 +1,12 @@
 var BEM = require('bem'),
     Q = BEM.require('q'),
-    Tech = require('bem/lib/tech').TechV2,
     Deps = require('bem/lib/techs/v2/deps.js').Deps,
     PATH = require("path"),
     bemUtil = require("bem/lib/util"),
     __assert = require("assert");
 
-var dbg = 1;
-
-exports.baseTech = Tech;
-
 exports.techMixin = {
+    API_VER:2,
 
     getWeakBuildSuffixesMap:function(){
         return {"js":["browser.js","vanilla.js","js","bemhtml"]};
@@ -44,8 +40,9 @@ exports.techMixin = {
 
         var decl = this.transformBuildDecl(this.context.opts.declaration);
 
-        __assert(bemhtmlTech.API_VER === 2 && browserTech.API_VER === 2,
-                 this.getTechName() + ' can’t use v1 bemhtml tech to concat bemhtml content. Configure level to use v2 bemhtml.')
+        if(!(browserTech.API_VER === 2 && bemhtmlTech.API_VER === 2)){
+            return Q.reject(this.getTechName() + " can't use v1 techs to produce pieces of result");
+        }
 
         opts = {__proto__:opts, force:true};
 

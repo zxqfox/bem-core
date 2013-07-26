@@ -1,9 +1,8 @@
 var PATH = require('path'),
     BEM = require('bem'),
     Q = BEM.require('q'),
-    //Tech = require('bem/lib/tech').TechV2,
-    ymPath = require.resolve('ym');
-var Deps = require('bem/lib/techs/v2/deps.js').Deps
+    ymPath = require.resolve('ym'),
+    Deps = require('bem/lib/techs/v2/deps.js').Deps;
 
 exports.baseTechName = 'vanilla.js';
 
@@ -39,14 +38,15 @@ exports.techMixin = {
         return ['browser.js'];
     },
 
-    getYmChunk : function(outputDir, outputName, suffix) {
+    getYmChunk : function(output) {
+        var outputDir = PATH.resolve(output, '..');
         var ymRelPath = PATH.relative(outputDir, ymPath);
         return this.getBuildResultChunk(ymRelPath, ymPath);
     },
 
-    getBuildResult : function(prefixes, suffix, outputDir, outputName) {
+    getBuildResult : function(files, suffix, output, opts) {
         return Q.all([
-                this.getYmChunk(outputDir, outputName, suffix),
+                this.getYmChunk(output),
                 this.__base.apply(this, arguments)
             ])
             .spread(function(ym, res) {
