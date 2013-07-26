@@ -35,10 +35,9 @@ exports.techMixin = {
 
     getBuildResult:function(files, suffix, output, opts){
 
-        var bemhtmlTech = this.context.createTech("bemhtml");
-        var browserTech = this.context.createTech("browser.js");
-
-        var decl = this.transformBuildDecl(this.context.opts.declaration);
+        var bemhtmlTech = this.context.createTech("bemhtml"),
+            browserTech = this.context.createTech("browser.js"),
+            decl = this.transformBuildDecl(this.context.opts.declaration);
 
         if(!(browserTech.API_VER === 2 && bemhtmlTech.API_VER === 2)){
             return Q.reject(this.getTechName() + " can't use v1 techs to produce pieces of result");

@@ -5,12 +5,12 @@ var BEM = require('bem'),
 
     Tech = require('bem/lib/tech').TechV2;
 
-exports.baseTech = Tech;
-
 exports.techMixin = {
 
+    API_VER:2,
+
     getBuildSuffixesMap : function() {
-        return {'bemhtml.js':['bemhtml', 'bemhtml.xjst']};
+        return { 'bemhtml.js' : ['bemhtml', 'bemhtml.xjst'] };
     },
 
     getCreateSuffixes : function() {
