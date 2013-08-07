@@ -1,5 +1,6 @@
 /*global MAKE: true */
 
+
 require('./nodes');
 
 var PATH = require('path'),
@@ -17,7 +18,6 @@ try {
     require('bem/lib/logger').warn('"bem-pr" is not installer');
 }
 
-
 MAKE.decl('Arch', {
 
     blocksLevelsRegexp: /^.+?\.blocks$/,
@@ -34,7 +34,7 @@ MAKE.decl('Arch', {
                 root : this.root,
                 arch : this.arch,
                 levels : ['common.blocks', 'desktop.blocks'],
-                output : 'build'
+                output : 'release'
             })
             .alterArch(null, libs);
 
