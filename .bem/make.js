@@ -102,7 +102,7 @@ MAKE.decl('ExampleNode', {
         var type = this.getNodePrefix().split('.')[0],
             resolve = PATH.resolve.bind(null, this.root),
             levels = [ ],
-            getLevels = this[(type.indexOf(environ.getConf().siteOutputFolder) === 0? 'desktop' : type) + '-levels'];
+            getLevels = this[(type.indexOf('release') === 0? 'desktop' : type) + '-levels'];
 
         getLevels && (levels = levels.concat(getLevels()));
 
