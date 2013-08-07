@@ -8,7 +8,8 @@ var PATH = require('path'),
 environ.extendMake(MAKE);
 
 try {
-    var setsNodes = require(environ.getLibPath('bem-pr', 'bem/nodes/sets'));
+    var setsNodes = require(environ.getLibPath('bem-pr', 'bem/nodes/sets')),
+        siteNodes = require(environ.getLibPath('bem-gen-doc', '.bem/nodes/site'));
 } catch(e) {
     if(e.code !== 'MODULE_NOT_FOUND')
         throw e;
@@ -23,10 +24,19 @@ MAKE.decl('Arch', {
 
     bundlesLevelsRegexp: /^.+?\.bundles$/,
 
-    libraries : [ 'bem-pr@origin/v0.2' ],
+    libraries : [ 'bem-pr@origin/v0.2', 'bem-gen-doc @ 0.7.2', 'bem-json', 'bem-bl@0.3' ],
 
     createCustomNodes: function(common, libs, blocks) {
-        if(!setsNodes) return;
+        if(!setsNodes || !siteNodes) return;
+
+        new siteNodes.SiteNode({
+                id : 'site',
+                root : this.root,
+                arch : this.arch,
+                levels : ['common.blocks', 'desktop.blocks'],
+                output : 'build'
+            })
+            .alterArch(null, libs);
 
         // Сборка примеров
         return setsNodes.SetsNode
