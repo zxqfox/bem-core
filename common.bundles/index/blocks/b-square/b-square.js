@@ -1,3 +1,4 @@
+/*global BEM */
 /**
  * The block's BEM declaration can state which block (a block with a modifier or a block
  * with a specific modifier value)
@@ -10,7 +11,7 @@ modules.define('i-bem__dom', ['BEMHTML'], function(provide, BEMHTML, DOM) {
 DOM.decl('b-square', {
     _onSquareClick : function() {
         this.toggleMod('color', '', 'green');
-        DOM.update(this.domElem, BEMHTML.apply({ block: 'test', content: 'client BEMHTML test' }));
+        DOM.update(this.domElem, BEMHTML.apply({ block: 'test', content: BEM.I18N('kk', 'k2') }));
     }
 }, {
     live : function() {

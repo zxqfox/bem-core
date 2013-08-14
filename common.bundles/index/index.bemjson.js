@@ -7,7 +7,8 @@
     ],
     content: [{
         block: 'b-square',
-        js: {id:1}
+        js: {id:1},
+        content: { block: 'i-bem', elem: 'i18n', keyset: 'kk', key: 'k1' }
     },{
         block: 'b-square',
         js: {id:1}
