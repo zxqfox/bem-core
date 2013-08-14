@@ -23,6 +23,10 @@ exports.getTechs = function() {
         techs[name] = environ.getLibPath('bem-pr', 'bem', 'techs', name + '.js');
     });
 
+    ['i18n', 'i18n.keys.js', 'i18n.html'].forEach(function(name) {
+        techs[name] = environ.getLibPath('bem-bl', 'blocks-common/i-bem/bem/techs');
+    });
+
     [
         'bemhtml',
         'bemtree',

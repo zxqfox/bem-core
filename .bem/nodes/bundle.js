@@ -17,6 +17,8 @@ require('bem/lib/nodesregistry').decl('BundleNode', {
             'bemjson.js',
             'bemdecl.js',
             'deps.js',
+            'i18n',
+            'i18n.keys.js',
             'css',
             'bemhtml',
             'browser.js+bemhtml',
@@ -53,12 +55,16 @@ require('bem/lib/nodesregistry').decl('BundleNode', {
         return this['create-js-optimizer-node'].apply(this, arguments);
     },
 
-    'create-bemtree.xjst-optimizer-node' : function() {
-        return this['create-bemhtml-optimizer-node'].apply(this, arguments);
+    'create-bemtree.js-optimizer-node' : function() {
+        return this['create-bemtree-xjst-optimizer-node'].apply(this, arguments);
     },
 
-    'create-bemtree.xjst.js-optimizer-node' : function() {
-        return this['create-bemtree-xjst-optimizer-node'].apply(this, arguments);
+    'create-i18n.keys.js-node' : function(tech, bundleNode, magicNode) {
+        return this.setBemCreateNode(
+            tech,
+            this.level.resolveTech(tech),
+            bundleNode,
+            magicNode);
     }
 
 });
