@@ -19,7 +19,8 @@ require('bem/lib/nodesregistry').decl('BundleNode', {
             'deps.js',
             'css',
             'bemhtml',
-            'browser.js+bemhtml',
+            'i18n',
+            'i18n.browser.js+bemhtml',
             'html'
         ];
     },

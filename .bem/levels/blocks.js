@@ -28,10 +28,12 @@ exports.getTechs = function() {
         'bemhtml',
         'bemtree',
         'html',
+        'i18n',
         'vanilla.js',
         'browser.js',
         'node.js',
-        'browser.js+bemhtml'
+        'browser.js+bemhtml',
+        'i18n.browser.js+bemhtml'
     ].forEach(function(name) {
         techs[name] = coreTechs.resolveTech(name);
     });
