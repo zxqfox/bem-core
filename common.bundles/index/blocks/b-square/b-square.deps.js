@@ -6,5 +6,13 @@
 {
     tech: 'js',
     mustDeps: { tech: 'bemhtml', block: 'i-bem' }
+},
+{
+  tech: 'js',
+  shouldDeps : {tech: 'vanilla.js', block: 'b-square'}
+},
+{
+  tech: 'js',
+  shouldDeps : {tech: 'bemhtml', block: 'b-square'}
 }
 ]

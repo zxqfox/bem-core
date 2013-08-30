@@ -14,11 +14,10 @@
   "author": "Sergey Belov <peimei@ya.ru>",
   "license": "MIT",
   "dependencies": {
-    "bem-techs-core": "~0.1.0",
+    "bem-techs-core": "git://github.com/bem/bem-techs-core.git#58cbd7b044b3",
     "bem-environ": "~1.2.0"
   },
   "devDependencies": {
-    "bem": "~0.6.15",
     "mocha": "~1.9.0",
     "jshint": "2.1.8",
     "jshint-groups": "0.5.1",
