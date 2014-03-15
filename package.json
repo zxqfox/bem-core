@@ -25,7 +25,11 @@
     "jshint-groups": "0.6.0",
     "jscs": "1.0.0",
     "git-hooks": "0.0.3",
-    "bower-npm-install": "~0.5.4"
+    "bower-npm-install": "~0.5.4",
+    "karma": "^0.12.0",
+    "karma-chrome-launcher": "^0.1.2",
+    "karma-phantomjs-launcher": "^0.1.2",
+    "karma-mocha-reporter": "^0.2.2"
   },
   "scripts": {
     "lint": "jshint-groups && jscs .",
