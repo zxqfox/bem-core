@@ -1,7 +1,17 @@
+/**
+ * @module i18n
+ */
 modules.define('i18n', ['objects'], function(provide, objects) {
 
 var data;
 
+/**
+ * @exports
+ * @param {String} keyset
+ * @param {String} key
+ * @param {Object} [params]
+ * @returns {String}
+ */
 function i18n(keyset, key, params) {
     if(!data) throw Error('i18n need to be filled with data');
     var val = data[keyset] && data[keyset][key];
