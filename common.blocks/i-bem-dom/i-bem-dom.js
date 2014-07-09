@@ -39,7 +39,7 @@ var undef,
      * Storage for blocks by unique key
      * @type Object
      */
-    uniqIdToBlock = {},
+    uniqIdToEntity = {},
 
     /**
     * Storage for DOM element's parent nodes
@@ -116,7 +116,7 @@ function initBlock(blockName, domElem, params, forceLive, callback) {
     params || (params = processParams(getBlockParams(domNode, blockName), blockName));
 
     var uniqId = params.uniqId,
-        block = uniqIdToBlock[uniqId];
+        block = uniqIdToEntity[uniqId];
 
     if(block) {
         if(block.domElem.index(domNode) < 0) {
@@ -217,7 +217,7 @@ function extractParams(domNode) {
 function removeDomNodeFromBlock(block, domNode) {
     if(block.domElem.length === 1) {
         block._destruct();
-        delete uniqIdToBlock[block._uniqId];
+        delete uniqIdToEntity[block._uniqId];
     } else {
         block.domElem = block.domElem.not(domNode);
     }
@@ -234,23 +234,20 @@ function storeDomNodeParents(domElem) {
 }
 
 /**
- * @class Block
- * @description Base block for creating BEM blocks that have DOM representation
- * @augments i-bem:Block
- * @exports
+ * @class BemDomEntity
+ * @description Base mix for BEM entities that have DOM representation
  */
-
-var Block = inherit(BEM.Block,/** @lends Block.prototype */{
+var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     /**
      * @constructor
      * @private
-     * @param {jQuery} domElem DOM element that the block is created on
-     * @param {Object} params Block parameters
+     * @param {jQuery} domElem DOM element that the entity is created on
+     * @param {Object} params parameters
      * @param {Boolean} [initImmediately=true]
      */
     __constructor : function(domElem, params, initImmediately) {
         /**
-         * DOM elements of block
+         * DOM elements of entity
          * @member {jQuery}
          * @readonly
          */
@@ -271,15 +268,15 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
         this._elemCache = {};
 
         /**
-         * @member {String} Unique block ID
+         * @member {String} Unique entity ID
          * @private
          */
         this._uniqId = params.uniqId;
 
-        uniqIdToBlock[this._uniqId] = this;
+        uniqIdToEntity[this._uniqId] = this;
 
         /**
-         * @member {Boolean} Flag for whether it's necessary to unbind from the document and window when destroying the block
+         * @member {Boolean} Flag for whether it's necessary to unbind from the document and window when destroying the entity
          * @private
          */
         this._needSpecialUnbind = false;
@@ -288,88 +285,74 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
     },
 
     /**
-     * Finds blocks inside the current block or its elements (including context)
-     * @param {String|jQuery} [elem] Block element
-     * @param {Function|Object} Block Block or description (block,modName,modVal) of the block to find
-     * @returns {BEMDOM[]}
+     * Finds blocks inside the current entity
+     * @param {Function|Object} Block Block or description (block, modName, modVal) of the block to find
+     * @returns {Block[]}
      */
-    findBlocksInside : function(elem, Block) {
-        return this._findBlocks('find', elem, Block);
+    findBlocksInside : function(Block) {
+        return this._findBlocks('find', Block);
     },
 
     /**
-     * Finds the first block inside the current block or its elements (including context)
-     * @param {String|jQuery} [elem] Block element
-     * @param {Function|Object} Block Block or description (block,modName,modVal) of the block to find
-     * @returns {BEMDOM}
+     * Finds the first block inside the current entity
+     * @param {Function|Object} Block Block or description (block, modName, modVal) of the block to find
+     * @returns {Block}
      */
-    findBlockInside : function(elem, Block) {
-        return this._findBlocks('find', elem, Block, true);
+    findBlockInside : function(Block) {
+        return this._findBlocks('find', Block, true);
     },
 
     /**
-     * Finds blocks outside the current block or its elements (including context)
-     * @param {String|jQuery} [elem] Block element
-     * @param {Function|Object} Block Block or description (block,modName,modVal) of the block to find
-     * @returns {BEMDOM[]}
+     * Finds blocks outside the current entity
+     * @param {Function|Object} Block Block or description (block, modName, modVal) of the block to find
+     * @returns {Block[]}
      */
-    findBlocksOutside : function(elem, Block) {
-        return this._findBlocks('parents', elem, Block);
+    findBlocksOutside : function(Block) {
+        return this._findBlocks('parents', Block);
     },
 
     /**
-     * Finds the first block outside the current block or its elements (including context)
-     * @param {String|jQuery} [elem] Block element
-     * @param {Function|Object} Block Block or description (block,modName,modVal) of the block to find
-     * @returns {BEMDOM}
+     * Finds the first block outside the current entity
+     * @param {Function|Object} Block Block or description (block, modName, modVal) of the block to find
+     * @returns {Block}
      */
     findBlockOutside : function(elem, Block) {
-        return this._findBlocks('closest', elem, Block)[0] || null;
+        return this._findBlocks('closest', Block)[0] || null;
     },
 
     /**
-     * Finds blocks on DOM elements of the current block or its elements
-     * @param {String|jQuery} [elem] Block element
-     * @param {Function|Object} Block Block or description (block,modName,modVal) of the block to find
-     * @returns {BEMDOM[]}
+     * Finds blocks on DOM elements of the current entity
+     * @param {Function|Object} Block Block or description (block, modName, modVal) of the block to find
+     * @returns {Block[]}
      */
     findBlocksOn : function(elem, block) {
-        return this._findBlocks('', elem, block);
+        return this._findBlocks('', block);
     },
 
     /**
-     * Finds the first block on DOM elements of the current block or its elements
-     * @param {String|jQuery} [elem] Block element
-     * @param {Function|Object} Block Block or description (block,modName,modVal) of the block to find
-     * @returns {BEMDOM}
+     * Finds the first block on DOM elements of the current entity
+     * @param {Function|Object} Block Block or description (block, modName, modVal) of the block to find
+     * @returns {Block}
      */
     findBlockOn : function(elem, Block) {
-        return this._findBlocks('', elem, Block, true);
+        return this._findBlocks('', Block, true);
     },
 
-    _findBlocks : function(select, elem, Block, onlyFirst) {
-        if(!Block) {
-            Block = elem;
-            elem = undef;
-        }
-
-        var ctxElem = elem?
-                (typeof elem === 'string'? this.findElem(elem) : elem) :
-                this.domElem,
-            isSimpleBlock = typeof Block !== 'object',
+    _findBlocks : function(select, Block, onlyFirst) {
+        var isSimpleBlock = typeof Block !== 'object',
             blockName = (isSimpleBlock? Block : Block.block).getName(),
             selector = '.' +
                 (isSimpleBlock?
                     buildClass(blockName) :
                     buildClass(blockName, Block.modName, Block.modVal)) +
                 (onlyFirst? ':first' : ''),
-            domElems = ctxElem.filter(selector);
+            domElems = this.domElem.filter(selector);
 
-        select && (domElems = domElems.add(ctxElem[select](selector)));
+        select && (domElems = domElems.add(this.domElem[select](selector)));
 
-        if(onlyFirst) {
-            return domElems[0]? initBlock(blockName, domElems.eq(0), undef, true) : null;
-        }
+        if(onlyFirst) return domElems[0]?
+            initBlock(blockName, domElems.eq(0), undef, true) :
+            null;
 
         var res = [],
             uniqIds = {};
@@ -391,8 +374,8 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
      * @param {jQuery} domElem DOM element where the event will be listened for
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the block's context
-     * @returns {Block} this
+     * @param {Function} fn Handler function, which will be executed in the entity's context
+     * @returns {Block|Elem} this
      */
     bindToDomElem : function(domElem, event, data, fn) {
         if(functions.isFunction(data)) {
@@ -417,8 +400,8 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
      * @protected
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the block's context
-     * @returns {Block} this
+     * @param {Function} fn Handler function, which will be executed in the entity's context
+     * @returns {Block|Elem} this
      */
     bindToDoc : function(event, data, fn) {
         this._needSpecialUnbind = true;
@@ -430,8 +413,8 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
      * @protected
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the block's context
-     * @returns {Block} this
+     * @param {Function} fn Handler function, which will be executed in the entity's context
+     * @returns {Block|Elem} this
      */
     bindToWin : function(event, data, fn) {
         this._needSpecialUnbind = true;
@@ -1318,6 +1301,26 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
 });
 
 /**
+ * @class Block
+ * @description Base class for creating BEM blocks that have DOM representation
+ * @augments i-bem:Block
+ * @exports
+ */
+var Block = inherit([BEM.Block, BemDomEntity], /** @lends Block.prototype */{
+}, /** @lends Block */{
+});
+
+/**
+ * @class Elem
+ * @description Base class for creating BEM elements that have DOM representation
+ * @augments i-bem:Elem
+ * @exports
+ */
+var Elem = inherit([BEM.Elem, BemDomEntity], /** @lends Elem.prototype */{
+}, /** @lends Elem */{
+});
+
+/**
  * Returns a block on a DOM element and initializes it if necessary
  * @param {Function} Block Block
  * @param {Object} params Block parameters
@@ -1412,7 +1415,7 @@ var BEMDOM = /** @exports */{
             var params = getParams(domNode);
             objects.each(params, function(blockParams) {
                 if(blockParams.uniqId) {
-                    var block = uniqIdToBlock[blockParams.uniqId];
+                    var block = uniqIdToEntity[blockParams.uniqId];
                     block?
                         removeDomNodeFromBlock(block, domNode) :
                         delete uniqIdToDomElems[blockParams.uniqId];
