@@ -47,12 +47,10 @@ var undef,
  * @param {String} prefix
  * @param {String} modName Modifier name
  * @param {String} modVal Modifier value
- * @param {String} [elemName] Element name
  * @returns {String}
  */
-function buildModFnName(prefix, modName, modVal, elemName) {
+function buildModFnName(prefix, modName, modVal) {
     return '__' + prefix +
-        (elemName? '__elem_' + elemName : '') +
        '__mod' +
        (modName? '_' + modName : '') +
        (modVal? '_' + modVal : '');
@@ -63,20 +61,19 @@ function buildModFnName(prefix, modName, modVal, elemName) {
  * @param {String} prefix
  * @param {Object} modFns
  * @param {Object} props
- * @param {String} [elemName]
  */
-function modFnsToProps(prefix, modFns, props, elemName) {
+function modFnsToProps(prefix, modFns, props) {
     if(functions.isFunction(modFns)) {
-        props[buildModFnName(prefix, '*', '*', elemName)] = modFns;
+        props[buildModFnName(prefix, '*', '*')] = modFns;
     } else {
         var modName, modVal, modFn;
         for(modName in modFns) {
             modFn = modFns[modName];
             if(functions.isFunction(modFn)) {
-                props[buildModFnName(prefix, modName, '*', elemName)] = modFn;
+                props[buildModFnName(prefix, modName, '*')] = modFn;
             } else {
                 for(modVal in modFn) {
-                    props[buildModFnName(prefix, modName, modVal, elemName)] = modFn[modVal];
+                    props[buildModFnName(prefix, modName, modVal)] = modFn[modVal];
                 }
             }
         }
@@ -259,86 +256,25 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
 
     /**
      * Checks whether a BEM entity has a modifier
-     * @param {Object} [elem] Nested element
      * @param {String} modName Modifier name
      * @param {String} [modVal] Modifier value
      * @returns {Boolean}
      */
-    hasMod : function(elem, modName, modVal) {
-        var len = arguments.length,
-            invert = false;
-
-        if(len === 1) {
-            modVal = '';
-            modName = elem;
-            elem = undef;
-            invert = true;
-        } else if(len === 2) {
-            if(typeof elem === 'string') {
-                modVal = modName;
-                modName = elem;
-                elem = undef;
-            } else {
-                modVal = '';
-                invert = true;
-            }
-        }
-
-        var res = this.getMod(elem, modName) === modVal;
-        return invert? !res : res;
+    hasMod : function(modName, modVal) {
+        var res = this.getMod(modName) === (modVal || '');
+        return arguments.length === 1? !res : res;
     },
 
     /**
      * Returns the value of the modifier of the BEM entity
-     * @param {Object} [elem] Nested element
      * @param {String} modName Modifier name
      * @returns {String} Modifier value
      */
-    getMod : function(elem, modName) {
-        var type = typeof elem;
-        if(type === 'string' || type === 'undefined') { // elem either omitted or undefined
-            modName = elem || modName;
-            var modCache = this._modCache;
-            return modName in modCache?
-                modCache[modName] || '' :
-                modCache[modName] = this._extractModVal(modName);
-        }
-
-        return this._getElemMod(modName, elem);
-    },
-
-    /**
-     * Returns the value of the modifier of the nested element
-     * @private
-     * @param {String} modName Modifier name
-     * @param {Object} elem Nested element
-     * @param {Object} [elemName] Nested element name
-     * @returns {String} Modifier value
-     */
-    _getElemMod : function(modName, elem, elemName) {
-        return this._extractModVal(modName, elem, elemName);
-    },
-
-    /**
-     * Returns values of modifiers of the BEM entity
-     * @param {Object} [elem] Nested element
-     * @param {String} [...modNames] Modifier names
-     * @returns {Object} Hash of modifier values
-     */
-    getMods : function(elem) {
-        var hasElem = elem && typeof elem !== 'string',
-            modNames = [].slice.call(arguments, hasElem? 1 : 0),
-            res = this._extractMods(modNames, hasElem? elem : undef);
-
-        if(!hasElem) { // caching
-            modNames.length?
-                modNames.forEach(function(name) {
-                    this._modCache[name] = res[name];
-                }, this) :
-                this._modCache = res;
-        }
-
-        return res;
+    getMod : function(modName) {
+        var modCache = this._modCache;
+        return modName in modCache?
+            modCache[modName] || '' :
+            modCache[modName] = this._extractModVal(modName);
     },
 
     /**
@@ -411,25 +347,14 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
      * Sets a modifier for a BEM entity, depending on conditions.
      * If the condition parameter is passed: when true, modVal1 is set; when false, modVal2 is set.
      * If the condition parameter is not passed: modVal1 is set if modVal2 was set, or vice versa.
-     * @param {Object} [elem] Nested element
      * @param {String} modName Modifier name
      * @param {String} modVal1 First modifier value
      * @param {String} [modVal2] Second modifier value
      * @param {Boolean} [condition] Condition
      * @returns {BemEntity} this
      */
-    toggleMod : function(elem, modName, modVal1, modVal2, condition) {
-        if(typeof elem === 'string') { // if this is a block
-            condition = modVal2;
-            modVal2 = modVal1;
-            modVal1 = modName;
-            modName = elem;
-            elem = undef;
-        }
-
-        if(typeof modVal1 === 'undefined') { // boolean mod
-            modVal1 = true;
-        }
+    toggleMod : function(modName, modVal1, modVal2, condition) {
+        typeof modVal1 === 'undefined' && (modVal1 = true); // boolean mod
 
         if(typeof modVal2 === 'undefined') {
             modVal2 = '';
@@ -438,14 +363,13 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
             modVal2 = '';
         }
 
-        var modVal = this.getMod(elem, modName);
+        var modVal = this.getMod(modName);
         (modVal === modVal1 || modVal === modVal2) &&
             this.setMod(
-                elem,
                 modName,
                 typeof condition === 'boolean'?
                     (condition? modVal1 : modVal2) :
-                    this.hasMod(elem, modName, modVal1)? modVal2 : modVal1);
+                    this.hasMod(modName, modVal1)? modVal2 : modVal1);
 
         return this;
     },
@@ -453,55 +377,30 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
     /**
      * Removes a modifier from a BEM entity
      * @protected
-     * @param {Object} [elem] Nested element
      * @param {String} modName Modifier name
      * @returns {BemEntity} this
      */
-    delMod : function(elem, modName) {
-        if(!modName) {
-            modName = elem;
-            elem = undef;
-        }
-
-        return this.setMod(elem, modName, '');
+    delMod : function(modName) {
+        return this.setMod(modName, '');
     },
 
     /**
      * Executes handlers for setting modifiers
      * @private
      * @param {String} prefix
-     * @param {String} elemName Element name
      * @param {String} modName Modifier name
      * @param {String} modVal Modifier value
      * @param {Array} modFnParams Handler parameters
      */
-    _callModFn : function(prefix, elemName, modName, modVal, modFnParams) {
-        var modFnName = buildModFnName(prefix, modName, modVal, elemName);
+    _callModFn : function(prefix, modName, modVal, modFnParams) {
+        var modFnName = buildModFnName(prefix, modName, modVal);
         return this[modFnName]?
            this[modFnName].apply(this, modFnParams) :
            undef;
     },
 
-    /**
-     * Retrieves the value of the modifier
-     * @private
-     * @param {String} modName Modifier name
-     * @param {Object} [elem] Element
-     * @returns {String} Modifier value
-     */
-    _extractModVal : function(modName, elem) {
+    _extractModVal : function(modName) {
         return '';
-    },
-
-    /**
-     * Retrieves name/value for a list of modifiers
-     * @private
-     * @param {Array} modNames Names of modifiers
-     * @param {Object} [elem] Element
-     * @returns {Object} Hash of modifier values by name
-     */
-    _extractMods : function(modNames, elem) {
-        return {};
     },
 
     /**
@@ -537,14 +436,12 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
 }, /** @lends BemEntity */{
     /**
      * Factory method for creating an instance
-     * @param {Object} [desc]
-     * @param {Object} [desc.mods] modifiers
-     * @param {Object} [desc.params] params
+     * @param {Object} mods modifiers
+     * @param {Object} params params
      * @returns {BemEntity}
      */
-    create : function(desc) {
-        desc || (desc = {});
-        return new this(desc.mods, desc.params);
+    create : function(mods, params) {
+        return new this(mods, params);
     },
 
     /**
@@ -642,9 +539,7 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
     },
 
     _buildModEventName : function(modEvent) {
-        var res = MOD_DELIM + modEvent.modName + MOD_DELIM + (modEvent.modVal === false? '' : modEvent.modVal);
-        modEvent.elem && (res = ELEM_DELIM + modEvent.elem + res);
-        return res;
+        return MOD_DELIM + modEvent.modName + MOD_DELIM + (modEvent.modVal === false? '' : modEvent.modVal);
     }
 });
 
@@ -653,23 +548,7 @@ var BemEntity = inherit(events.Emitter, /** @lends BemEntity.prototype */ {
  * @description Class for creating BEM blocks
  * @augments BemEntity
  */
-var Block = inherit(BemEntity, /** @lends Block.prototype */ {
-}, /** @lends Block */{
-    /**
-     * Declares elem and creates a elem class
-     * @param {String} elemName Elem name
-     * @param {Function|Array[Function]} [base] base elem + mixes
-     * @param {Object} [props] Methods
-     * @param {Object} [staticProps] Static methods
-     * @returns {Function} Elem class
-     */
-    declElem : function(elemName, base, props, staticProps) {
-        var res = declEntity(Elem, this._name + ELEM_DELIM + elemName, base, props, staticProps);
-        res._blockName = this._name;
-        res._name = elemName;
-        return res;
-    }
-});
+var Block = BemEntity;
 
 /**
  * @class Elem
@@ -677,9 +556,29 @@ var Block = inherit(BemEntity, /** @lends Block.prototype */ {
  * @augments BemEntity
  */
 var Elem = inherit(BemEntity, /** @lends Elem.prototype */ {
-    // TODO: block
+    /**
+     * Returns the own block of current element
+     * @returns {Block}
+     */
+    block : function() {
+        return this._block;
+    },
+
     // TODO: _emitModChangeEvents?
 }, /** @lends Elem */{
+    /**
+     * Factory method for creating an instance
+     * @param {Object} block block instance
+     * @param {Object} mods modifiers
+     * @param {Object} params params
+     * @returns {BemEntity}
+     */
+    create : function(block, mods, params) {
+        var res = new this(mods, params);
+        res._block = block;
+        return res;
+    },
+
     /**
      * Returns the name of the current BEM entity
      * @returns {String}
@@ -720,6 +619,22 @@ provide(/** @exports */{
     declBlock : function(blockName, base, props, staticProps) {
         var res = declEntity(Block, blockName, base, props, staticProps);
         res._name = blockName;
+        return res;
+    },
+
+    /**
+     * Declares elem and creates a elem class
+     * @param {String} blockName Block name
+     * @param {String} elemName Elem name
+     * @param {Function|Array[Function]} [base] base elem + mixes
+     * @param {Object} [props] Methods
+     * @param {Object} [staticProps] Static methods
+     * @returns {Function} Elem class
+     */
+    declElem : function(blockName, elemName, base, props, staticProps) {
+        var res = declEntity(Elem, blockName + ELEM_DELIM + elemName, base, props, staticProps);
+        res._blockName = blockName;
+        res._name = elemName;
         return res;
     },
 

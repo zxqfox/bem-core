@@ -661,7 +661,7 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
      */
     _extractMods : function(modNames, elem) {
         var res = {},
-            extractAll = !modNames.length,
+            extractAll = !modNames.length, // TODO: modNames can be undefined
             countMatched = 0;
 
         ((elem || this.domElem)[0].className
@@ -875,6 +875,13 @@ var Block = inherit(BEM.Block,/** @lends Block.prototype */{
     }
 
 }, /** @lends Block */{
+    /**
+     * @override
+     */
+    create : function() {
+        throw Error('BEMDOM blocks can not be created otherwise than from DOM');
+    },
+
     /**
      * Processes a block's live properties
      * @private
