@@ -798,10 +798,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Processes a block's live properties
+     * Processes live properties of entity
      * @private
-     * @param {Boolean} [heedLive=false] Whether to take into account that the block already processed its live properties
-     * @returns {Boolean} Whether the block is a live block
+     * @param {Boolean} [heedLive=false] Whether to take into account that the entity already processed its live properties
+     * @returns {Boolean} Whether the entity is a live
      */
     _processLive : function(heedLive) {
         var res = this._liveInitable;
@@ -825,7 +825,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @returns {String}
      */
     _buildCtxEventName : function(e) {
-        return this._name + ':' + e;
+        return this.getEntityName() + ':' + e;
     },
 
     _liveClassBind : function(className, e, callback, invokeOnInit) {
@@ -905,33 +905,33 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
         return function(e) {
             e.currentTarget = this;
             var args = [
-                    _this._name,
+                    _this.getEntityName(),
                     $(this).closest(_this.buildSelector()),
                     undef,
                     true
                 ],
-                block = initEntity.apply(null, invokeOnInit? args.concat([callback, e]) : args);
+                entity = initEntity.apply(null, invokeOnInit? args.concat([callback, e]) : args);
 
-            if(block && !invokeOnInit && callback)
-                return callback.apply(block, arguments);
+            if(entity && !invokeOnInit && callback)
+                return callback.apply(entity, arguments);
         };
     },
 
     /**
      * Helper for live initialization for an event on DOM elements of a block or its elements
      * @protected
-     * @param {String} [elemName] Element name or names (separated by spaces)
+     * @param {Function|String|Object} elem Element class or name or description elem, modName, modVal
      * @param {String} event Event name
      * @param {Function} [callback] Handler to call after successful initialization
      */
-    liveInitOnEvent : function(elemName, event, callback) {
-        return this.liveBindTo(elemName, event, callback, true);
+    liveInitOnEvent : function(elem, event, callback) {
+        return this.liveBindTo(elem, event, callback, true);
     },
 
     /**
      * Helper for subscribing to live events on DOM elements of a block or its elements
      * @protected
-     * @param {String|Object} [to] Description (object with modName, modVal, elem) or name of the element or elements (space-separated)
+     * @param {Function|String|Object} [to] Element class or name or description elem, modName, modVal or entity description (modName, modVal)
      * @param {String} event Event name
      * @param {Function} [callback] Handler
      * @returns {Function} this
@@ -943,70 +943,59 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             to = undef;
         }
 
-        if(!to || typeof to === 'string') {
-            to = { elem : to };
-        }
-
-        if(to.elem && to.elem.indexOf(' ') > 0) {
-            to.elem.split(' ').forEach(function(elem) {
-                this._liveClassBind(
-                    this.buildClass(elem, to.modName, to.modVal),
-                    event,
-                    callback,
-                    invokeOnInit);
-            }, this);
-            return this;
+        if(!to || typeof to !== 'object') {
+            to = { elem : typeof to === 'string' ? to : to.getName() };
         }
 
         return this._liveClassBind(
-            this.buildClass(to.elem, to.modName, to.modVal),
+            buildClass(this._blockName, to.elem, to.modName, to.modVal),
             event,
             callback,
             invokeOnInit);
     },
 
     /**
-     * Helper for unsubscribing from live events on DOM elements of a block or its elements
+     * Helper for unsubscribing from live events on DOM elements of a entity
      * @protected
-     * @param {String} [elem] Name of the element or elements (space-separated)
+     * @param {Function|String|Object} [from] Element class or name or description elem, modName, modVal or entity description (modName, modVal)
      * @param {String} event Event name
      * @param {Function} [callback] Handler
      * @returns {Function} this
      */
-    liveUnbindFrom : function(elem, event, callback) {
-        if(elem.indexOf(' ') > 1) {
-            elem.split(' ').forEach(function(elem) {
-                this._liveClassUnbind(
-                    this.buildClass(elem),
-                    event,
-                    callback);
-            }, this);
-            return this;
+    liveUnbindFrom : function(from, event, callback) {
+        if(!event || functions.isFunction(event)) {
+            callback = event;
+            event = from;
+            from = undef;
+        }
+
+        if(!from || typeof from !== 'object') {
+            from = { elem : typeof from === 'string' ? from : from.getName() };
         }
 
         return this._liveClassUnbind(
-            this.buildClass(elem),
+            buildClass(this._blockName, from.elem, from.modName, from.modVal),
             event,
             callback);
     },
 
     /**
-     * Helper for live initialization when a different block is initialized
+     * Helper for live initialization when a different entity is initialized
      * @private
      * @param {String} event Event name
-     * @param {Function} Block Block that should emit a reaction when initialized
-     * @param {Function} callback Handler to be called after successful initialization in the new block's context
+     * @param {Function} entityCls Class of entity that should emit a reaction when initialized
+     * @param {Function} callback Handler to be called after successful initialization in the new entity's context
      * @param {String} findFnName Name of the method for searching
      */
-    _liveInitOnBlockEvent : function(event, Block, callback, findFnName) {
-        Block.on(
+    _liveInitOnEntityEvent : function(event, entityCls, callback, findFnName) {
+        entityCls.on(
             event,
             function(e) {
                 var args = arguments,
-                    blocks = e.target[findFnName](this);
+                    entity = e.target[findFnName](this);
 
-                callback && blocks.forEach(function(block) {
-                    callback.apply(block, args);
+                callback && entity.forEach(function(entity) {
+                    callback.apply(entity, args);
                 });
             },
             this);
@@ -1015,31 +1004,31 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Helper for live initialization for a different block's event on the current block's DOM element
+     * Helper for live initialization for a different entity's event on the current entity's DOM element
      * @protected
      * @param {String} event Event name
-     * @param {Function} Block Block that should emit a reaction when initialized
-     * @param {Function} callback Handler to be called after successful initialization in the new block's context
+     * @param {Function} entityCls Class of entity that should emit a reaction when initialized
+     * @param {Function} callback Handler to be called after successful initialization in the new entity's context
      * @returns {Function} this
      */
-    liveInitOnBlockEvent : function(event, Block, callback) {
-        return this._liveInitOnBlockEvent(event, Block, callback, 'findBlocksOn');
+    liveInitOnEntityEvent : function(event, entityCls, callback) {
+        return this._liveInitOnEntityEvent(event, entityCls, callback, 'findEntitysOn');
     },
 
     /**
-     * Helper for live initialization for a different block's event inside the current block
+     * Helper for live initialization for a different entity's event inside the current entity
      * @protected
      * @param {String} event Event name
-     * @param {Function} Block Block that should emit a reaction when initialized
+     * @param {Function} entityCls Class of entity that should emit a reaction when initialized
      * @param {Function} [callback] Handler to be called after successful initialization in the new block's context
      * @returns {Function} this
      */
-    liveInitOnBlockInsideEvent : function(event, Block, callback) {
-        return this._liveInitOnBlockEvent(event, Block, callback, 'findBlocksOutside');
+    liveInitOnEntityInsideEvent : function(event, entityCls, callback) {
+        return this._liveInitOnEntityEvent(event, entityCls, callback, 'findEntitysOutside');
     },
 
     /**
-     * Adds a live event handler to a block, based on a specified element where the event will be listened for
+     * Adds a live event handler to a entity, based on a specified element where the event will be listened for
      * @param {jQuery} [ctx] The element in which the event will be listened for
      * @param {String} e Event name
      * @param {Object} [data] Additional information that the handler gets as e.data
@@ -1054,7 +1043,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Removes the live event handler from a block, based on a specified element where the event was being listened for
+     * Removes the live event handler from an entity, based on a specified element where the event was being listened for
      * @param {jQuery} [ctx] The element in which the event was being listened for
      * @param {String} e Event name
      * @param {Function} [fn] Handler
@@ -1068,7 +1057,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Adds a live event handler to a block, based on a specified element where the event will be listened for
+     * Adds a live event handler to a entity, based on a specified element where the event will be listened for
      * @private
      * @param {jQuery} ctx The element in which the event will be listened for
      * @param {String} e  Event name
@@ -1123,7 +1112,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Removes a live event handler from a block, based on a specified element where the event was being listened for
+     * Removes a live event handler from a entity, based on a specified element where the event was being listened for
      * @private
      * @param {jQuery} ctx The element in which the event was being listened for
      * @param {String|Object} e Event name
