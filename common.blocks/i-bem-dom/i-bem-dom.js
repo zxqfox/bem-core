@@ -254,13 +254,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
         this.domElem = domElem;
 
         /**
-         * Cache for names of events on DOM elements
-         * @member {Object}
-         * @private
-         */
-        this._eventNameCache = {};
-
-        /**
          * Cache for elements
          * @member {Object}
          * @private
@@ -375,7 +368,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
      * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {Block|Elem} this
+     * @returns {BemDomEntity} this
      */
     bindToDomElem : function(domElem, event, data, fn) {
         if(functions.isFunction(data)) {
@@ -385,7 +378,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
         fn?
             domElem.bind(
-                this._buildEventName(event),
+                this._buildDomEventName(event),
                 data,
                 $.proxy(fn, this)) :
             objects.each(event, function(fn, event) {
@@ -401,7 +394,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
      * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {Block|Elem} this
+     * @returns {BemDomEntity} this
      */
     bindToDoc : function(event, data, fn) {
         this._needSpecialUnbind = true;
@@ -414,7 +407,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
      * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {Block|Elem} this
+     * @returns {BemDomEntity} this
      */
     bindToWin : function(event, data, fn) {
         this._needSpecialUnbind = true;
@@ -422,43 +415,20 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Adds an event handler to the block's main DOM elements or its nested elements
+     * Adds an event handler to the BEM entity's main DOM elements
      * @protected
-     * @param {jQuery|String} [elem] Element
      * @param {String|Object} event Event name or event object
      * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the block's context
-     * @returns {Block} this
+     * @param {Function} fn Handler function, which will be executed in the BEM entity's context
+     * @returns {BemDomEntity} this
      */
-    bindTo : function(elem, event, data, fn) {
-        var len = arguments.length;
-        if(len === 3) {
-            if(functions.isFunction(data)) {
-                fn = data;
-                if(typeof event === 'object') {
-                    data = event;
-                    event = elem;
-                    elem = this.domElem;
-                }
-            }
-        } else if(len === 2) {
-            if(functions.isFunction(event)) {
-                fn = event;
-                event = elem;
-                elem = this.domElem;
-            } else if(!(typeof elem === 'string' || elem instanceof $)) {
-                data = event;
-                event = elem;
-                elem = this.domElem;
-            }
-        } else if(len === 1) {
-            event = elem;
-            elem = this.domElem;
+    bindTo : function(event, data, fn) {
+        if(functions.isFunction(data)) {
+            fn = data;
+            data = undef;
         }
 
-        typeof elem === 'string' && (elem = this.elem(elem));
-
-        return this.bindToDomElem(elem, event, data, fn);
+        return this.bindToDomElem(this.domElem, event, data, fn);
     },
 
     /**
@@ -467,11 +437,11 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     * @param {jQuery} domElem DOM element where the event was being listened for
     * @param {String|Object} event Event name or event object
     * @param {Function} [fn] Handler function
-    * @returns {Block} this
+    * @returns {BemDomEntity} this
     */
     unbindFromDomElem : function(domElem, event, fn) {
         if(typeof event === 'string') {
-            event = this._buildEventName(event);
+            event = this._buildDomEventName(event);
             fn?
                 domElem.unbind(event, fn) :
                 domElem.unbind(event);
@@ -489,7 +459,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     * @protected
     * @param {String|Object} event Event name or event object
     * @param {Function} [fn] Handler function
-    * @returns {Block} this
+    * @returns {BemDomEntity} this
     */
     unbindFromDoc : function(event, fn) {
         return this.unbindFromDomElem(doc, event, fn);
@@ -500,34 +470,21 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     * @protected
     * @param {String|Object} event Event name or event object
     * @param {Function} [fn] Handler function
-    * @returns {Block} this
+    * @returns {BemDomEntity} this
     */
     unbindFromWin : function(event, fn) {
         return this.unbindFromDomElem(win, event, fn);
     },
 
     /**
-    * Removes event handlers from the block's main DOM elements or its nested elements
+    * Removes event handlers from the BEM entity's main DOM elements
     * @protected
-    * @param {jQuery|String} [elem] Nested element
-    * @param {String|Object} event Event name or event object
+    * @param {String|Object} [event] Event name or event object
     * @param {Function} [fn] Handler function
-    * @returns {Block} this
+    * @returns {BemDomEntity} this
     */
-    unbindFrom : function(elem, event, fn) {
-        var argLen = arguments.length;
-        if(argLen === 1) {
-            event = elem;
-            elem = this.domElem;
-        } else if(argLen === 2 && functions.isFunction(event)) {
-            fn = event;
-            event = elem;
-            elem = this.domElem;
-        } else if(typeof elem === 'string') {
-            elem = this.elem(elem);
-        }
-
-        return this.unbindFromDomElem(elem, event, fn);
+    unbindFrom : function(event, fn) {
+        return this.unbindFromDomElem(this.domElem, event, fn);
     },
 
     /**
@@ -536,34 +493,13 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @param {String} event Event name
      * @returns {String}
      */
-    _buildEventName : function(event) {
+    _buildDomEventName : function(event) {
+        var uniq = '.' + this._uniqId;
         return event.indexOf(' ') > 1?
             event.split(' ').map(function(e) {
-                return this._buildOneEventName(e);
+                return e + uniq;
             }, this).join(' ') :
-            this._buildOneEventName(event);
-    },
-
-    /**
-     * Builds a full name for a single event
-     * @private
-     * @param {String} event Event name
-     * @returns {String}
-     */
-    _buildOneEventName : function(event) {
-        var eventNameCache = this._eventNameCache;
-
-        if(event in eventNameCache) return eventNameCache[event];
-
-        var uniq = '.' + this._uniqId;
-
-        if(event.indexOf('.') < 0) return eventNameCache[event] = event + uniq;
-
-        var ns = '.bem_' + this.__self._name;
-
-        return eventNameCache[event] = event.split('.').map(function(e, i) {
-            return i? ns + '_' + e : e + ns;
-        }).join('') + uniq;
+            event + uniq;
     },
 
     _ctxEmit : function(e, data) {
@@ -597,26 +533,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Sets a modifier for a block/nested element
-     * @param {jQuery} [elem] Nested element
-     * @param {String} modName Modifier name
-     * @param {String} modVal Modifier value
-     * @returns {Block} this
-     */
-    setMod : function(elem, modName, modVal) {
-        if(elem && typeof modVal !== 'undefined' && elem.length > 1) {
-            var _this = this;
-            elem.each(function() {
-                var item = $(this);
-                item.__bemElemName = elem.__bemElemName;
-                _this.setMod(item, modName, modVal);
-            });
-            return _this;
-        }
-        return this.__base(elem, modName, modVal);
-    },
-
-    /**
      * Retrieves modifier value from the DOM node's CSS class
      * @private
      * @param {String} modName Modifier name
@@ -624,64 +540,30 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @param {String} [elemName] Name of the nested element
      * @returns {String} Modifier value
      */
-    _extractModVal : function(modName, elem, elemName) {
-        var domNode = (elem || this.domElem)[0],
+    _extractModVal : function(modName) {
+        var domNode = this.domElem[0],
             matches;
 
         domNode &&
             (matches = domNode.className
-                .match(this.__self._buildModValRE(modName, elemName || elem)));
+                .match(this.__self._buildModValRE(modName)));
 
         return matches? matches[2] || true : '';
     },
 
     /**
-     * Retrieves a name/value list of modifiers
-     * @private
-     * @param {Array} [modNames] Names of modifiers
-     * @param {Object} [elem] Element
-     * @returns {Object} Hash of modifier values by names
+     * @override
      */
-    _extractMods : function(modNames, elem) {
-        var res = {},
-            extractAll = !modNames.length, // TODO: modNames can be undefined
-            countMatched = 0;
+    _onSetMod : function(modName, modVal, oldModVal) {
+        this.__base.apply(this, arguments);
 
-        ((elem || this.domElem)[0].className
-            .match(this.__self._buildModValRE(
-                '(' + (extractAll? NAME_PATTERN : modNames.join('|')) + ')',
-                elem,
-                'g')) || []).forEach(function(className) {
-                    var matches = className.match(EXTRACT_MODS_RE);
-                    res[matches[1]] = matches[2] || true;
-                    ++countMatched;
-                });
-
-        // empty modifier values are not reflected in classes; they must be filled with empty values
-        countMatched < modNames.length && modNames.forEach(function(modName) {
-            modName in res || (res[modName] = '');
-        });
-
-        return res;
-    },
-
-    /**
-     * Sets a modifier's CSS class for a block's DOM element or nested element
-     * @private
-     * @param {String} modName Modifier name
-     * @param {String} modVal Modifier value
-     * @param {String} oldModVal Old modifier value
-     * @param {jQuery} [elem] Element
-     * @param {String} [elemName] Element name
-     */
-    _onSetMod : function(modName, modVal, oldModVal, elem, elemName) {
         if(modName !== 'js' || modVal !== '') {
             var _self = this.__self,
-                classPrefix = _self._buildModClassPrefix(modName, elemName),
-                classRE = _self._buildModValRE(modName, elemName),
-                needDel = modVal === '' || modVal === false;
+                classPrefix = _self._buildModClassPrefix(modName),
+                classRE = _self._buildModValRE(modName),
+                needDel = modVal === '';
 
-            (elem || this.domElem).each(function() {
+            this.domElem.each(function() {
                 var className = this.className,
                     modClassName = classPrefix;
 
@@ -695,18 +577,11 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                             (needDel? '' : '$1' + modClassName)) :
                         needDel || $(this).addClass(modClassName);
             });
-
-            elemName && this
-                .dropElemCache(elemName, modName, oldModVal)
-                .dropElemCache(elemName, modName, modVal);
         }
-
-        this.__base.apply(this, arguments);
     },
 
     /**
-     * Finds elements nested in a block
-     * @param {jQuery} [ctx=this.domElem] Element where search is being performed
+     * Finds elements nested in a BEM entity
      * @param {String|Object} elem Element name or description elem, modName, modVal
      * @param {Boolean} [strictMode=false]
      * @returns {jQuery} DOM elements
@@ -1238,34 +1113,26 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Builds a prefix for the CSS class of a DOM element or nested element of the block, based on modifier name
+     * Builds a prefix for the CSS class of a DOM element of the BEM entity, based on modifier name
      * @private
      * @param {String} modName Modifier name
-     * @param {jQuery|String} [elem] Element
      * @returns {String}
      */
-    _buildModClassPrefix : function(modName, elem) {
-        return this._name +
-               (elem?
-                   ELEM_DELIM + (typeof elem === 'string'? elem : this._extractElemNameFrom(elem)) :
-                   '') +
-               MOD_DELIM + modName;
+    _buildModClassPrefix : function(modName) {
+        return this.getEntityName() + MOD_DELIM + modName;
     },
 
     /**
-     * Builds a regular expression for extracting modifier values from a DOM element or nested element of a block
+     * Builds a regular expression for extracting modifier values from a DOM element of a BEM entity
      * @private
      * @param {String} modName Modifier name
-     * @param {jQuery|String} [elem] Element
-     * @param {String} [quantifiers] Regular expression quantifiers
      * @returns {RegExp}
      */
-    _buildModValRE : function(modName, elem, quantifiers) {
+    _buildModValRE : function(modName) {
         return new RegExp(
             '(\\s|^)' +
-            this._buildModClassPrefix(modName, elem) +
-            '(?:' + MOD_DELIM + '(' + NAME_PATTERN + '))?(?=\\s|$)',
-            quantifiers);
+            this._buildModClassPrefix(modName) +
+            '(?:' + MOD_DELIM + '(' + NAME_PATTERN + '))?(?=\\s|$)');
     },
 
     /**
@@ -1317,6 +1184,17 @@ var Block = inherit([BEM.Block, BemDomEntity], /** @lends Block.prototype */{
  * @exports
  */
 var Elem = inherit([BEM.Elem, BemDomEntity], /** @lends Elem.prototype */{
+    /**
+     * @override
+     */
+    _onSetMod : function(modName, modVal, oldModVal) {
+        var name = this.__self.getName();
+        this.block()
+            .dropElemCache(name, modName, oldModVal)
+            .dropElemCache(name, modName, modVal);
+
+        this.__base.apply(this, arguments);
+    },
 }, /** @lends Elem */{
 });
 
