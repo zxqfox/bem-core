@@ -562,8 +562,7 @@ var Elem = inherit(BemEntity, /** @lends Elem.prototype */ {
      */
     block : function() {
         return this._block;
-    },
-
+    }
     // TODO: _emitModChangeEvents?
 }, /** @lends Elem */{
     /**
@@ -586,7 +585,6 @@ var Elem = inherit(BemEntity, /** @lends Elem.prototype */ {
     getEntityName : function() {
         return this._blockName + ELEM_DELIM + this._name;
     }
-
 });
 
 provide(/** @exports */{
@@ -618,7 +616,7 @@ provide(/** @exports */{
      */
     declBlock : function(blockName, base, props, staticProps) {
         var res = declEntity(Block, blockName, base, props, staticProps);
-        res._name = blockName;
+        res._name = res._blockName = blockName;
         return res;
     },
 
