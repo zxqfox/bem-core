@@ -83,7 +83,8 @@ var undef,
     buildModPostfix = BEMINTERNAL.buildModPostfix,
     buildClass = BEMINTERNAL.buildClass,
 
-    reverse = Array.prototype.reverse;
+    reverse = Array.prototype.reverse,
+    slice = Array.prototype.slice;
 
 /**
  * Initializes entities on a DOM element
@@ -142,7 +143,7 @@ function initEntity(entityName, domElem, params, forceLive, callback) {
 
         entity = new entityCls(uniqIdToDomElems[uniqId], params, !!forceLive);
         delete uniqIdToDomElems[uniqId];
-        callback && callback.apply(entity, Array.prototype.slice.call(arguments, 4));
+        callback && callback.apply(entity, slice.call(arguments, 4));
         return entity;
     }
 }
@@ -243,6 +244,21 @@ function storeDomNodeParents(domElem) {
 }
 
 /**
+ * Build key for elem
+ * @param {Function|String|Object} elem Element class or name or description elem, modName, modVal
+ * @returns {String}
+ */
+function buildElemKey(elem) {
+    if(typeof elem === 'string') {
+        elem = { elem : elem };
+    } else if(functions.isFunction(elem)) {
+        elem = { elem : elem.getName() };
+    }
+
+    return elem.elem + buildModPostfix(elem.modName, elem.modVal);
+}
+
+/**
  * @class BemDomEntity
  * @description Base mix for BEM entities that have DOM representation
  */
@@ -261,6 +277,13 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
          * @readonly
          */
         this.domElem = domElem;
+
+        /**
+         * Cache for elements collections
+         * @member {Object}
+         * @private
+         */
+        this._elemsCache = {};
 
         /**
          * Cache for elements
@@ -689,96 +712,65 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * Lazy search for elements nested in a block (caches results)
      * @private
      * @param {Function|String|Object} elem Element class or name or description elem, modName, modVal
-     * @returns {jQuery} DOM elements
+     * @returns {Elem}
+     */
+    elems : function(elem) {
+        var key = buildElemKey(elem);
+        return this._elemsCache[key] || (this._elemsCache[key] = this.findElemsInside(elem));
+    },
+
+    /**
+     * Lazy search for the first element nested in a block (caches results)
+     * @private
+     * @param {Function|String|Object} elem Element class or name or description elem, modName, modVal
+     * @returns {Elem}
      */
     elem : function(elem) {
-        if(typeof elem === 'string') {
-            elem = { elem : elem };
-        } else if(functions.isFunction(elem)) {
-            elem = { elem : elem.getName() };
-        }
-
-        var key = elem.elem + buildModPostfix(elem.modName, elem.modVal);
-
-        return this._elemCache[key] || (this._elemCache[key] = this.findElemsInside(elem));
+        var key = buildElemKey(elem);
+        // NOTE: can use this._elemsCache but it's too rare case
+        return this._elemCache[key] || (this._elemCache[key] = this.findElemInside(elem));
     },
 
     /**
      * Clearing the cache for elements
      * @protected
-     * @param {String} [names] Nested element name (or names separated by spaces)
-     * @param {String} [modName] Modifier name
-     * @param {String} [modVal] Modifier value
-     * @returns {Block} this
+     * @param {Function|String|Object} [...elems] Nested elements names or description elem, modName, modVal
+     * @returns {BemDomEntity} this
      */
-    dropElemCache : function(names, modName, modVal) {
-        if(names) {
-            var modPostfix = buildModPostfix(modName, modVal);
-            names.indexOf(' ') < 0?
-                delete this._elemCache[names + modPostfix] :
-                names.split(' ').forEach(function(name) {
-                    delete this._elemCache[name + modPostfix];
-                }, this);
-        } else {
+    dropElemCache : function(elems) {
+        if(!arguments.length) {
+            this._elemsCache = {};
             this._elemCache = {};
+            return this;
         }
+
+        (Array.isArray(elems)? elems : slice.call(arguments)).forEach(function(elem) {
+            var key = buildElemKey(elem);
+            delete this._elemsCache[key];
+            delete this._elemCache[key];
+        });
 
         return this;
     },
 
     /**
-     * Retrieves parameters of a block element
-     * @param {String|jQuery} elem Element
-     * @returns {Object} Parameters
-     */
-    elemParams : function(elem) {
-        var elemName;
-        if(typeof elem === 'string') {
-            elemName = elem;
-            elem = this.elem(elem);
-        } else {
-            elemName = this.__self._extractElemNameFrom(elem);
-        }
-
-        return extractParams(elem[0])[this.__self.buildClass(elemName)] || {};
-    },
-
-    /**
-     * Elemify given element
-     * @param {jQuery} elem Element
-     * @param {String} elemName Name
-     * @returns {jQuery}
-     */
-    elemify : function(elem, elemName) {
-        (elem = $(elem)).__bemElemName = elemName;
-        return elem;
-    },
-
-    /**
      * Checks whether a DOM element is in a block
      * @protected
-     * @param {jQuery} [ctx=this.domElem] Element where check is being performed
      * @param {jQuery} domElem DOM element
      * @returns {Boolean}
      */
-    containsDomElem : function(ctx, domElem) {
-        if(arguments.length === 1) {
-            domElem = ctx;
-            ctx = this.domElem;
-        }
-
-        return dom.contains(ctx, domElem);
+    containsDomElem : function(domElem) {
+        return dom.contains(this.domElem, domElem);
     },
 
     /**
-     * Builds a CSS selector corresponding to a block/element and modifier
-     * @param {String} [elem] Element name
+     * Builds a CSS selector corresponding to an entity and modifier
      * @param {String} [modName] Modifier name
      * @param {String} [modVal] Modifier value
      * @returns {String}
      */
-    buildSelector : function(elem, modName, modVal) {
-        return this.__self.buildSelector(elem, modName, modVal);
+    buildSelector : function(modName, modVal) {
+        return this.__self.buildSelector(modName, modVal);
     },
 
     /**
@@ -1165,19 +1157,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Retrieves the name of an element nested in a block
-     * @private
-     * @param {jQuery} elem Nested element
-     * @returns {String|undef}
-     */
-    _extractElemNameFrom : function(elem) {
-        if(elem.__bemElemName) return elem.__bemElemName;
-
-        var matches = elem[0].className.match(this._buildElemNameRE());
-        return matches? matches[1] : undef;
-    },
-
-    /**
      * Builds a prefix for the CSS class of a DOM element of the entity, based on modifier name
      * @private
      * @param {String} modName Modifier name
@@ -1201,34 +1180,23 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Builds a regular expression for extracting names of elements nested in a block
-     * @private
-     * @returns {RegExp}
-     */
-    _buildElemNameRE : function() {
-        return new RegExp(this._name + ELEM_DELIM + '(' + NAME_PATTERN + ')(?:\\s|$)');
-    },
-
-    /**
-     * Builds a CSS class corresponding to the block/element and modifier
-     * @param {String} [elem] Element name
+     * Builds a CSS class corresponding to the entity and modifier
      * @param {String} [modName] Modifier name
      * @param {String} [modVal] Modifier value
      * @returns {String}
      */
-    buildClass : function(elem, modName, modVal) {
-        return buildClass(this._name, elem, modName, modVal);
+    buildClass : function(modName, modVal) {
+        return buildClass(this.getEntityName(), modName, modVal);
     },
 
     /**
-     * Builds a CSS selector corresponding to the block/element and modifier
-     * @param {String} [elem] Element name
+     * Builds a CSS selector corresponding to an entity and modifier
      * @param {String} [modName] Modifier name
      * @param {String} [modVal] Modifier value
      * @returns {String}
      */
-    buildSelector : function(elem, modName, modVal) {
-        return '.' + this.buildClass(elem, modName, modVal);
+    buildSelector : function(modName, modVal) {
+        return '.' + this.buildClass(modName, modVal);
     }
 });
 
