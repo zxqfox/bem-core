@@ -13,6 +13,7 @@
 
 Блок `inherit` реализован в технологии `vanila.js` и подходит для использования как в клиентских, так и в серверных приложениях.
 
+
 ## Объявление базового "класса"
 
 Чтобы объявить базовый "класс" нужно воспользоваться единственным методом, предоставляемым блоком: 
@@ -25,7 +26,8 @@ provide(this.name, /** @lends test1.prototype */{
         'js' : {
             'inited' : function() {
                 // base "class"
-                var A = inherit({...})
+                var A = inherit({...});
+            }
         }
     }
 });
@@ -38,6 +40,7 @@ provide(this.name, /** @lends test1.prototype */{
 Function inherit(Object props);
 ```
 
+
 ### Базовый "класс" со статическими свойствами
 
 При объявлении базового "класса" методу `inherit` можно передать вторым аргументом объект статических свойств:
@@ -45,7 +48,8 @@ Function inherit(Object props);
 ```js
 Function inherit(
     Object props,
-    Object staticProps);
+    Object staticProps
+);
 ```
 
 Свойства из объекта `staticProps` будут добавлены как статические к создаваемой функции-конструктору:
@@ -53,13 +57,16 @@ Function inherit(
 ```js
 var A = inherit(
     props,
-    { callMe : function(){ console.log("I'm mr.Static") } 
+    {
+    callMe : function(){ console.log("I'm mr.Static") }
+    }
     });
 
 A.callMe() // I'm mr.Static
 ```
 
 **NB** Статические методы функции-конструктора выполняются в контексте самой функции. Например, ссылка `this` внутри метода `callMe` будет указывать на функцию `A`.
+
 
 ### Метод `__constructor`
 
@@ -79,8 +86,9 @@ var A = inherit(/** @lends A.prototype */{
 }),
     aInst = new A('Property');
 
-aInst.getProperty(); //Property of instanceA
+aInst.getProperty(); // Property of instanceA
 ```
+
 
 ## Создание производного "класса"
 
@@ -98,6 +106,7 @@ Function inherit(
 
 Один из объектов может содержать свойства, которые уже имеются в базовом "классе". Тогда свойство базового "класса" будет переопределено. Производный "класс" будет содержать значения из объекта.
 
+
 ### Создание производного "класса" с миксинами
 
 При объявлении производного "класса" можно указать дополнительный набор функций. Их свойства будут примешаны к создаваемому "классу". Для этого первым аргументом (базовый "класс") нужно указать массив. Его первым элементом должен быть базовый "класс", последующими – примешиваемые функции:
@@ -113,7 +122,6 @@ Function inherit(
     Object props,
     Object staticProps);
 ```
-
 
 
 ## Специальные поля
@@ -137,6 +145,7 @@ var A = inherit(/** @lends A.prototype */{
     aInst = new A();
 aInst.getStaticProperty(); //staticA
 ```
+
 
 ### `__base`
 
