@@ -2,7 +2,7 @@
 
 Блок `loader` служит для загрузки и подключения фрагментов кода по URL.
 
-Блок реализован в технологии `js` и подходит для использования клиентских приложениях.
+Блок реализован в технологии `js` и подходит для использования в клиентских приложениях.
 
 
 ## Модификаторы блока
@@ -22,22 +22,30 @@
 * `{String}` `url` – URL загружаемого фрагмента JS-кода;
 * `{Function}` `cb` – функция обратного вызова, которая будет выполнена по завершению загрузки фрагмента кода.
 
-Например:
+Например, блок используется в блоке `common.blocks/jquery` библиотеки `bem-core` для загрузки и подключения jQuery:
 
 ```js
-modules.define('test-js-load', ['loader_type_js'], function(provide, jsLoader) {
+modules.define(
+    'jquery',
+    ['loader_type_js', 'jquery__config'],
+    function(provide, loader, cfg) {
 
-    provide(function() {
-        jsLoader('http://mysite.org/test.js', function() { console.log("Wow, it's loaded") })
-    });
+/* global jQuery */
+
+function doProvide(preserveGlobal) {
+    /**
+     * @exports
+     * @type Function
+     */
+    provide(preserveGlobal? jQuery : jQuery.noConflict(true));
+}
+
+typeof jQuery !== 'undefined'?
+    doProvide(true) :
+    loader(cfg.url, doProvide);
 });
 ```
 
-
-При инициализации блока с модификатором `loader_type_js` происходит следующее:
-
-* Создается очередь для функций обратного вызова, ожидающих выполнения после загрузки. Для каждого значения `url` в очереди создается отдельный массив колбеков.
-* Формируется объект для списка уже подключенных `url`.
 
 При вызове функции производится поиск строки – первого аргумента:
 
