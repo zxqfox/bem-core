@@ -1,5 +1,5 @@
 Для использования блока необходимо подмешать его к нужному html-элементу, например:
-%%hl xml
+```html
     <div style="background: #ada;">
         top
     </div>
@@ -13,4 +13,4 @@
     <div style="background: #ada;">
         bottom
     </div>
-%%
+```
