@@ -2,6 +2,7 @@
 return function ($bh) {
 
     $bh->match('ua', function ($ctx, $json) {
+        $ctx->applyBase();
         $ctx->content([
             $json->content,
             '(function(d,n){',
