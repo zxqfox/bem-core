@@ -36,7 +36,11 @@
     "disallowKeywordsOnNewLine": ["else"],
     "requireLineFeedAtFileEnd": true,
     "disallowMultipleLineBreaks": true,
-    "validateJSDoc": {
+
+    "plugins": [
+	"jscs-jsdoc"
+    ],
+    "jsDoc": {
         "checkParamNames": true,
         "requireParamTypes": true
     }
