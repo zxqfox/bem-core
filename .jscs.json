@@ -42,6 +42,7 @@
     ],
     "jsDoc": {
         "checkParamNames": true,
-        "requireParamTypes": true
+	"requireParamTypes": true,
+	"checkRedundantAccess": true
     }
 }
