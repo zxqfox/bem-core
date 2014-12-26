@@ -27,7 +27,7 @@ suite('BEM.I18N Complex tests', function() {
                     return (lastNumber === 1 && lastNumbers !== 11)?
                             params.one : (
                                     (lastNumber > 1 && lastNumber < 5) && (lastNumbers < 10 || lastNumbers > 20)?
-                                        params.some : params.many );
+                            params.some : params.many);
                 }).call(this, params);
             },
             'plural_adv' : function(params) {
@@ -35,11 +35,11 @@ suite('BEM.I18N Complex tests', function() {
                     var count = isNaN(parseInt(params.count, 10))? 0 : params.count;
                     if(count === 0) { return params.none; }
                     return this.keyset('i-tanker__dynamic').key('plural', {
-                            'count' : params['count'],
-                            'one' : params['one'],
-                            'some' : params['some'],
-                            'many' : params['many']
-                        });
+                        'count' : params['count'],
+                        'one' : params['one'],
+                        'some' : params['some'],
+                        'many' : params['many']
+                    });
                 }).call(this, params);
             },
             'toggle' : function(params) {
@@ -75,7 +75,7 @@ suite('BEM.I18N Complex tests', function() {
                         'one' : 'Найдена',
                         'some' : 'Найдено',
                         'many' : 'Найдено'
-                    } ) + ' \n' +
+            }) + ' \n' +
                     params['count'] + '\n' +
                     this.keyset('i-tanker__dynamic').key('plural_adv', {
                         'count' : params['count'],
@@ -90,10 +90,10 @@ suite('BEM.I18N Complex tests', function() {
                 return this.keyset('i-tanker__dynamic').key('plural_adv', {
                         'count' : params['count'],
                         'none' : 'Ничего не найдено на страницах Помощи.',
-                        'one' : '<p>' + this.keyset('i-locale').key('not-found-in-section', {  } ) + '</p>' + 'Найдена',
-                        'some' : '<p>' + this.keyset('i-locale').key('not-found-in-section', {  } ) + '</p>' + 'Найдено',
-                        'many' : '<p>' + this.keyset('i-locale').key('not-found-in-section', {  } ) + '</p>' + 'Найдено'
-                    } ) + ' \n' +
+                        'one' : '<p>' + this.keyset('i-locale').key('not-found-in-section', {  }) + '</p>' + 'Найдена',
+                        'some' : '<p>' + this.keyset('i-locale').key('not-found-in-section', {  }) + '</p>' + 'Найдено',
+                        'many' : '<p>' + this.keyset('i-locale').key('not-found-in-section', {  }) + '</p>' + 'Найдено'
+                }) + ' \n' +
                     params['count'] + '\n' +
                     this.keyset('i-tanker__dynamic').key('plural_adv', {
                         'count' : params['count'],
