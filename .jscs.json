@@ -1,4 +1,8 @@
 {
+    "plugins" : ["./node_modules/jscs-bem"],
+    "preset" : "bem",
+
+    "fileExtensions": [".js", ".bemtree", ".bemhtml"],
     "excludeFiles": [
         ".bem/cache/**",
         ".enb/tmp/**",
@@ -14,35 +18,8 @@
         "common.blocks/vow/**",
         "common.blocks/inherit/**",
         "common.blocks/ecma/__array/ecma__array.spec.js",
-        "common.blocks/jquery/__event/_type/jquery__event_type_pointerclick.js",
-        "common.blocks/jquery/__event/_type/jquery__event_type_pointer.js",
-        "common.blocks/jquery/__event/_type/jquery__event_type_pointerpressrelease.js"
-    ],
-    "fileExtensions": [".js", ".bemtree", ".bemhtml"],
-    "requireSpaceAfterKeywords": ["do", "else"],
-    "disallowSpaceAfterKeywords": ["if", "for", "while", "switch"],
-    "disallowSpacesInFunctionExpression": {
-        "beforeOpeningRoundBrace": true
-    },
-    "disallowSpacesInsideArrayBrackets": true,
-    "requireSpacesInsideObjectBrackets": "all",
-    "requireSpaceAfterObjectKeys": true,
-    "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-", "~", "!"],
-    "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
-    "disallowSpaceBeforeBinaryOperators": [","],
-    "requireSpaceBeforeBinaryOperators": ["+", "-", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<=", "&&", "||"],
-    "requireSpaceAfterBinaryOperators": [",", "+", "-", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<=", "&&", "||"],
-    "disallowKeywords": ["with"],
-    "disallowKeywordsOnNewLine": ["else"],
-    "requireLineFeedAtFileEnd": true,
-    "disallowMultipleLineBreaks": true,
-
-    "plugins": [
-	"jscs-jsdoc"
-    ],
-    "jsDoc": {
-        "checkParamNames": true,
-	"requireParamTypes": true,
-	"checkRedundantAccess": true
-    }
+	"common.blocks/jquery/__event/_type/jquery__event_type_pointerclick.js",
+	"common.blocks/jquery/__event/_type/jquery__event_type_pointer.js",
+	"common.blocks/jquery/__event/_type/jquery__event_type_pointerpressrelease.js"
+    ]
 }

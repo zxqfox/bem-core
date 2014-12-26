@@ -24,6 +24,7 @@
     "mocha": "~1.9.0",
     "jshint-groups": "0.6.0",
     "jscs": "1.10.0",
+    "jscs-bem": "0.1.1",
     "jscs-jsdoc": "0.4.1",
     "git-hooks": "~0.0.6",
     "bower-npm-install": "~0.5.4",
